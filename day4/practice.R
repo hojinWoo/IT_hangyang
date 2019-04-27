@@ -19,6 +19,7 @@ library(randomForest)
 a = 1
 b <- 2
 d <- c(1, 3, 5)
+d[1]
 mean(d) #x의 역할을 하게 됨
 mean(e <- c(2, 4, 6))
 mean(f = c(2, 4, 6))#"="는 함수 안에서는 인자에 대응하는 것 따라서 "="는 사용 불가
@@ -80,15 +81,111 @@ levels(gender)[2]
 ordered("a", c("a", "b", "c"))
 factor("a", c("a", "b", "c"), ordered = T)
 
-# List
+# List(키, 값 형태의 데이터를 담은 연관배열 / 서로 다른 데이터 타입을 담을 수 있음) // 파이썬의 dictionary와 같다
+x <- list(name = "foo", height = 70)
+x
+x <- list(name = "foo", height = c(1, 3, 5)) #값이 스칼라일 필요 없음
+x$name  #$뒤에는 key가 들어오면 된다
+x[n]    #리스트에서 n번째 데이터의 서브리스트
+x[[n]]  #리스트에서 n번째 저장된 값
 
+# Array (모든 원소는 한가지 유형의 스칼라만 가능)
+matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9), nrow = 3)
+matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9), ncol = 3)
+matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9), nrow = 3, byrow = T)
+x <- matrix(1:9, ncol=3)
+x[1, 1]
+x[2, 1]
+x[1:2, ]
+x[-3, ]
+x[c(1, 3), c(1, 3)] #색인에서 벡터 사용
 
+# Dataframe
+d <- data.frame(x = 1:5, 
+                y=seq(2,10,2))
+(d <- data.frame(x = 1:5, 
+                 y=seq(2,10,2), 
+                 z = c('M', 'F', 'M', 'F', 'M')))
+# str() 함수
+str(d)
+d$x <- 6:10 #값 바꾸기기
+d <- data.frame(x = 1:5, 
+                y=seq(2,10,2))
 
+d[c(1, 3), 2]
+d[-1, -2]
+d[, c("x", "y")]
+d[, c("x")]
 
+## 2.3 의사결정나무(iris data)
+?iris #꽃받침, 꽃길이
+      #
+class(iris) #"data.frame"
+str(iris)
+dim(iris)
+names(iris)
+attributes(iris)
+iris[1:5, ]
+head(iris)
+tail(iris)
+iris[1:10, "Sepal.Length"]
+iris$Sepal.Length[1:10]
 
+summary(iris)
+quantile(iris$Sepal.Length)
+table(iris$Species)
+pie(table(iris$Species))
+hist(iris$Sepal.Length)
+plot(density(iris$Sepal.Length))
 
+#훈련용 데이터와 테스트 데이터로 분할
+set.seed(1234)
+ind <- sample(2, nrow(iris), replace = T, prob = c(0.7, 0.3)) #7:3으로 랜덤 샘플링링
+ind
+trainData <- iris[ind == 1, ]
+testData <- iris[ind == 2, ]
+nrow(trainData)
+nrow(testData)
 
+#의사결정나무 생성
+install.packages("party")
+library(party)
+myFormula <- Species ~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width
+iris_ctree <- ctree(myFormula, data=trainData)
+testPred <- predict(iris_ctree, newdata = testData)
+table(testData$Species, testPred)
 
+print(iris_ctree)
+plot(iris_ctree)
+plot(iris_ctree, type="simple")
 
+# 실습1 : DAAG패키지 설치 + spam7 데이터에 대해 의사결정나무 수행 // target = yesno
+install.packages("DAAG")
+library(DAAG)
+str(spam7)
+set.seed(5678)
+ind_P <- sample(2, nrow(spam7), replace = T, prob = c(0.7, 0.3))
+trainData_P <- spam7[ind_P == 1, ] 
+testData_P <- spam7[ind_P == 2, ] 
+spam7_ctree <- ctree(yesno ~ crl.tot + dollar + bang + money + n000 + make, data = trainData_P)
+testPred_P <- predict(spam7_ctree, newdata = testData_P)
+table(testData_P$yesno, testPred_P)
+plot(spam7_ctree, type="simple")
 
+# 실습2 : bank-full.csv
+bank = read.csv("data/bank-full.csv", header = T, sep = ";", quote = "\"");
+str(bank)
+set.seed(1234)
+ind <- sample(2, nrow(bank), replace = T, prob = c(0.7, 0.3))
+trainData <- bank[ind == 1, ]
+testData <- bank[ind == 2, ]
+bank_ctree <- ctree(y~., data=trainData, control = ctree_control(maxdepth = 3))
+testPred <- predict(bank_ctree, newdata = testData)
+table(testData$y, testPred)
+plot(bank_ctree, type = "simple")
 
+# Accurancy
+# Error Rate
+# Sensitivity or Recall
+# Specificity
+# Precision
